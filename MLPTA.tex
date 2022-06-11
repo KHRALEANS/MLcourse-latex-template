@@ -37,6 +37,8 @@
 \author{2021023206 \quad 徐力\\ \today\\ 机器学习课程作业}
 
 \usepackage{makecell}
+\newcommand{\upcite}[1]{\textsuperscript{\textsuperscript{\cite{#1}}}}
+
 
 \begin{document}
 
@@ -47,30 +49,24 @@
 
 
 \begin{abstract}
-该模板适用于机器学习高级技术及应用课程. 所有地方使用英文状态下的标点符号, 标点符号之后空一个空格.
+  分析了肠胃道图像分割竞赛数据的特点，包括掩码类别的占比、病例扫描次数分布、不同器官类别的共现性。通过观察掩码的重叠，制定了多标签分类的任务类型。分析了在扫描切片维度的掩码分布变化。修改了U-Net以适用于竞赛数据集，初步的实验结果揭示了模型的缺点和可以改进的方向。在竞赛的隐藏测试集上取得了0.785的分数。提出了现阶段方法的多个亟待解决的问题和三个改进的思路。
 
 \vspace{1ex}\noindent\textbf{关键词}: 词1; 词2
 
 \end{abstract}
 
-\begin{eabstract}
-	English Abstract
-	
-\vspace{1ex}\noindent\textbf{Keywords}: word1; word2
-\end{eabstract}
-
 
 \section{引言}
-医学图像分割是医学图像处理与分析领域的复杂而关键的步骤，其目的是将医学图像中具有某些特殊含义的部分分割出来，并提取相关特征，为临床诊疗和病理学研究提供可靠的依据，辅助医生作出更为准确的诊断。 医学图像具有复杂性，在分割过程中需要解决不均匀及个体差异等一系列问题，所以一般的图像分割方法难以直接应用于医学图像分割。
+医学图像分割是医学图像处理与分析领域的复杂而关键的步骤，其目的是将医学图像中具有某些特殊含义的部分分割出来，并提取相关特征，为临床诊疗和病理学研究提供可靠的依据，辅助医生作出更为准确的诊断。 医学图像具有复杂性，在分割过程中需要解决不均匀及个体差异等一系列问题，所以一般的图像分割方法难以直接应用于医学图像分割\upcite{c1}。
 
-UW-Madison 胃肠道图像分割(UW-Madison GI Tract Image Segmentation)是一场研究型代码竞赛，要求在医学扫描中跟踪健康肠胃器官的准确位置以改善肠胃癌的放射治疗。在治疗当中，借助集成磁共振成像和线性加速器系统（也称为 MR-Linacs）等技术，为了指向肿瘤施加高剂量辐射，同时避开肠和胃，放射肿瘤学家必须手动勾勒出胃和肠的位置。这项工作非常耗时，因为肿瘤、肠和胃的位置每天都在变化，使得治疗时间大大延长。
+UW-Madison 胃肠道图像分割(UW-Madison GI Tract Image Segmentation)是一场研究型代码竞赛\upcite{c2}，要求在医学扫描中跟踪健康肠胃器官的准确位置以改善肠胃癌的放射治疗。在治疗当中，借助集成磁共振成像和线性加速器系统（也称为 MR-Linacs）等技术，为了指向肿瘤施加高剂量辐射，同时避开肠和胃，放射肿瘤学家必须手动勾勒出胃和肠的位置。这项工作非常耗时，因为肿瘤、肠和胃的位置每天都在变化，使得治疗时间大大延长。
 
 在比赛中，需要创建模型以在MRI扫描中自动分割肠和胃。在给出的数据集中，不同的患者在不同日子里进行了多次MRI扫描，每次扫描包括多张断层扫描。
 % \subsection{二级标题}
 % \subsubsection{三级标题}
 
 \section{U-Net框架}
-U-Net 的构建基于“全卷积网络”。它由收缩路径（左侧）和扩展路径（右侧）组成。收缩路径遵循卷积网络的典型架构。它由两个 3x3 卷积（未填充卷积）的重复应用组成，每个卷积后跟一个整流线性单元 (ReLU) 和一个 2x2 最大池化操作，步幅为 2，用于下采样。在每个下采样步骤中，我们将特征通道的数量加倍。扩展路径中的每一步都包括对特征图进行上采样，然后是将特征通道数量减半的 2x2 卷积（“上卷积”），与收缩路径中相应裁剪的特征图的连接，以及两个 3x3卷积，每个后跟一个 ReLU。由于在每个卷积中都会丢失边界像素，因此收缩路径中的图像需要经过裁剪，再与扩展路径中相应的图像拼接。在最后一层，使用 1x1 卷积将每个 64 分量特征向量映射到所需数量的类。该网络总共有 23 个卷积层，如图 1 所示。
+U-Net\upcite{c3}的构建基于“全卷积网络”。它由收缩路径（左侧）和扩展路径（右侧）组成。收缩路径遵循卷积网络的典型架构。它由两个 3x3 卷积（未填充卷积）的重复应用组成，每个卷积后跟一个整流线性单元 (ReLU) 和一个 2x2 最大池化操作，步幅为 2，用于下采样。在每个下采样步骤中，我们将特征通道的数量加倍。扩展路径中的每一步都包括对特征图进行上采样，然后是将特征通道数量减半的 2x2 卷积（“上卷积”），与收缩路径中相应裁剪的特征图的连接，以及两个 3x3卷积，每个后跟一个 ReLU。由于在每个卷积中都会丢失边界像素，因此收缩路径中的图像需要经过裁剪，再与扩展路径中相应的图像拼接。在最后一层，使用 1x1 卷积将每个 64 分量特征向量映射到所需数量的类。该网络总共有 23 个卷积层，如图 1 所示。
 \begin{figure}[htbp]
   \centering
   \includegraphics[width = 1\linewidth]{structure.png}
@@ -217,214 +213,93 @@ U-Net 的构建基于“全卷积网络”。它由收缩路径（左侧）和�
 
 \section{实验}
 \subsection{评价指标}
-\subsubsection{三级标题}
+
+竞赛根据平均骰子系数(Dice coefficient)和3D豪斯多夫距离(Hausdorff distance)评估结果。
+
+平均骰子系数是每张图片的Dice系数的平均值：
+\[SC_{Dice}\]
+
+3D豪斯多夫距离(Hausdorff distance)的计算：首先使用扫描切片构建3D图像，每个切片的深度为1，计算预测物体到基准物体的豪斯多夫距离并归一化，取每张图片的平均，最后转化为分数：
+\[ SC_{Haus} \]
+
+最终分数是两个分数的加权和，计算如下：
+\[SC_{Final} = 0.4 * SC_{Dice} + 0.6 * SC_{Haus}\]
+
+\subsubsection{骰子系数}
+
+设$X$是预测像素的集合，$Y$是基准像素的集合，则Dice系数计算如下：
+
+\[ \frac{2*|X\cap Y|}{|X|+|Y|}\]
+
+Dice系数用于度量两个集合之间的一致性。当 X 和 Y 都为空时，Dice 系数定义为 0。
+
+\subsubsection{豪斯多夫距离}
+
+竞赛中的豪斯多夫距离指的是有向豪斯多夫距离，即一个点集中的点到另一个点集中的点的最短距离的最大值。设$X$是预测物体像素的集合，$Y$是基准物体像素的集合，则3D豪斯多夫距离计算如下：
+\[\sup_{x\in X} \inf_{y\in Y} d(x,y)\]
+其中sup和inf分别表示上确界和下确界。
 
 \subsection{实验设置}
 
+\subsubsection{训练集划分}
+
+实验采用5折交叉验证，需要将样本随机分成数量大致相等的五个数据集。划分的过程还需要满足一些要求：第一，每个病例作为一个组，且每个组中的所有数据必须处于同一折当中。否则，若一个病例的部分数据处于训练集且另一部分处于验证集，则会出现数据泄漏的问题。第二，每折数据应包含所有的分类，即背景、胃、大肠和小肠，且每折数据包含的各类别应尽量保持等比例，以防止数据不平衡的问题。
+
+使用keras中的StratifiedGroupKFold方法，将图片中分别有0、1、2、3个类别作为标签，并按病例分组，即可划分5折交叉验证数据集并满足以上两点要求。
+
+\subsubsection{模型结构}
+
+对U-Net进行修改以适应数据集：第一，U-Net原输入张量为$572\times 572\times 1$，为了适应肠胃的多标签分类，输入张量修改为$128\times 128\times 3$，每个通道表示一个类别的掩码。第二，收缩路径采取了5次下采样操作，比U-Net原作还多一次下采样。最窄路径图像只有$4\times 4$的大小，但是有256个特征通道，从而使像素分类包含了大的感受野和丰富的语义信息。第三，每个$3\times 3$卷积包含padding操作，不改变图像尺寸，从而保持了收缩路径和扩展路径尺寸的一一对应，在拼接操作时，高分辨率图像不需要裁剪，从而保留了高分辨率图像的边缘信息。第四，在扩展路径，拼接高分辨率图像时，并非将特征通道按1:1拼接，而是按2:1拼接，更偏向保留来自高分辨率图像的特征，而倾向于将上下文信息作为辅助。
+
+\subsubsection{训练设置}
+
+以二元交叉熵损失函数作为优化目标，使用Adam算法作为优化器。度量函数为骰子系数、交并比系数和准确率。实验在i5-8400 CPU和RTX3080 GPU的Linux服务器上进行。
+
 \subsection{结果分析}
-
-\section{结论}
-\subsection{二级标题}
-\subsubsection{三级标题}
-
-\section{图表}
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width = 1\linewidth]{smooth}
-  \caption{图片名称及图片内容简介}
-  \label{fig:fig2}
+  \includegraphics[width = 1\linewidth]{metric_result.png}
+  \caption{损失函数和度量函数的优化过程}
+  \label{fig:fig8}
 \end{figure}
 
+如图8所示，初步的实验取得了50\%以上的验证集上Dice系数。由于设置了早停，在连续5轮的验证集损失没有低于第6轮的损失之后，训练停止。由此可见，过拟合是亟待解决的问题。
 
-\begin{table}[htbp]
+模型预测的可视化如图9所示。可以观察到，对于已经判断正确的器官，模型预测的边界倾向于收缩，即将一些器官的边缘像素分类为背景。同时，模型可能将背景误分类为器官。
+
+\begin{figure}[htbp]
   \centering
- \caption{三线表}
- \label{tab:table2}
- \begin{tabular}{llll}
-  \toprule
-  表头1 & 表头2 & 表头3& 表头4\\
-  \midrule
-    模&式&识&别\\
-    机&器&学&习\\
-    数&据&挖&掘\\
-    人&工&智&能\\
-  \bottomrule
- \end{tabular}
-\end{table}
+  \includegraphics[width = 1\linewidth]{predict_visual.png}
+  \caption{损失函数和度量函数的优化过程}
+  \label{fig:fig9}
+\end{figure}
+
+\section{结论}
+
+分析了肠胃道图像分割竞赛数据的特点，包括掩码类别的占比、病例扫描次数分布、不同器官类别的共现性。通过观察掩码的重叠，制定了多标签分类的任务类型。分析了在扫描切片维度的掩码分布变化。修改了U-Net以适用于竞赛数据集，初步的实验结果揭示了模型的缺点和可以改进的方向。虽然目前在竞赛的隐藏测试集上取得了0.785的分数，但是仍发现了多个亟待解决的问题和改进的思路：
+
+第一，从实验结果看，仅仅迭代6个epoch就出现了过拟合的问题，且在训练集和验证集上的表现悬殊。这说明模型学习到了一些仅仅在训练集存在的特征。解决的途径，需要针对胃肠道数据集定制一些数据增强方法，以帮助模型学习数据的不变性而不是特异性特征。
+
+第二，U-Net应用于胃肠道图像分割竞赛，仅仅将本具有连续性的断层扫描的图片随机打乱进行训练和预测，遗失了大量纵坐标上的连续信息。例如，图9中将一些背景像素预测成了器官，但是，如果在与该层相邻的图片上，模型能正确识别背景，则在连续的切片上可以做信息的互相补充，从而纠正错误并正确识别。同时，器官属于三维实心物体，若模型将连续的扫描图片作为整体判断，则可以减少将中间像素预测为背景像素的情况。
+
+第三，是否将二元交叉熵作为损失函数，还有待商榷。例如，针对胃、大肠、小肠类别不平衡的问题，可以使用加权二元交叉熵。针对多分类问题，也有一些更合理的损失函数作为选择，例如focal损失函数\upcite{c4}，其相对地降低了对易分类样本的损失优化的要求，而相对地提高了对难分类样本的损失优化的要求。
+
+未来的工作将：关注将切片扫描作为3D物体切割问题考虑，研究相邻切片间的信息补充从而提高预测精度的方法；进一步挖掘数据集，探索更多的数据增强方法；最后，尝试不同的损失函数，及损失函数的线性组合。
 
 
-
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-
-\section{脚注}
-机器学习\footnote{脚注内容}
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
-
-\section{列点}
-
-\begin{itemize}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{itemize}
-
-\begin{enumerate}
-\item The word ÒdataÓ is plural, not singular.
-\item The subscript for the permeability of vacuum ?0, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ÒoÓ.
-\end{enumerate}
 
 
 \begin{thebibliography}{99}
 
-\bibitem{c1} G. O. Young, ÒSynthetic structure of industrial plastics (Book style with paper title and editor),Ó 	in Plastics, 2nd ed. vol. 3, J. Peters, Ed.  New York: McGraw-Hill, 1964, pp. 15Ð64.
-\bibitem{c2} W.-K. Chen, Linear Networks and Systems (Book style).	Belmont, CA: Wadsworth, 1993, pp. 123Ð135.
+\bibitem{c1}田娟秀, et al. 医学图像分析深度学习方法研究与挑战. 自动化学报, 2018, 44.3: 401-424.
+\bibitem{c2}https://www.kaggle.com/competitions/uw-madison-gi-tract-image-segmentation
+
+\bibitem{c3}RONNEBERGER, Olaf; FISCHER, Philipp; BROX, Thomas. U-net: Convolutional networks for biomedical image segmentation. In: International Conference on Medical image computing and computer-assisted intervention. Springer, Cham, 2015. p. 234-241.
+
+\bibitem{c4}LIN, Tsung-Yi, et al. Focal loss for dense object detection. In: Proceedings of the IEEE international conference on computer vision. 2017. p. 2980-2988.
+
+
 
 \end{thebibliography}
 \end{document}
